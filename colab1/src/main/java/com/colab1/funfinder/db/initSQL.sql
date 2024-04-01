@@ -1,0 +1,1 @@
+create user team1 password 'team1pw' superuser;

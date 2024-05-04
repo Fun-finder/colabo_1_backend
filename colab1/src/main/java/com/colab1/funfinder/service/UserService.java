@@ -55,13 +55,14 @@ public class UserService {
 		
 		//같은 아이디가 없을 때
 		if(optionalUser.isEmpty()) {
+			System.out.println("id 없음");
 			return null;
 		}
-		
 		User user = optionalUser.get();
 		
 		//비밀번호 다름
 		if(!user.getPassword().equals(req.getPassword())) {
+			System.out.println("비번 다름");
 			return null;
 		}
 		

@@ -46,14 +46,23 @@ public class UserController {
 			// 세션을 생성하기 전에 기존의 세션 파기
 			httpServletRequest.getSession().invalidate();
 			HttpSession session = httpServletRequest.getSession(true);
+			
 	        // 세션에 userId를 넣어줌
-	        session.setAttribute("userId", loginUser.getId());
+	        session.setAttribute("userId", loginUser.getLoginId());
 	        session.setMaxInactiveInterval(1800); // Session이 30분동안 유지
+	        System.out.println("session : "+ session.getAttribute("userId"));
 	        //로그인 화면에 뿌려주고 싶은게 있으면
 	        //화면에 뿌리는 DTO를 만들어서 값을 넣어주자
 			return new ResponseEntity(HttpStatus.OK);
 		}
-		
+		/**
+		 * 회원가입
+		 * DB insert, session.setAttribute
+		 * 화면에 로그인 중인 것을 알리면 페이지 이동(vue 에서는 어떻게 할 것인가)
+		 * @param request
+		 * @return ReponseEntity
+		 * @throws Exception
+		 */
 		@PostMapping("/join")
 		@ResponseStatus(HttpStatus.OK)
 		public ResponseEntity<String> join(@Valid @RequestBody JoinRequest request) throws Exception{

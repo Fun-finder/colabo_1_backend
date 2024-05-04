@@ -83,4 +83,10 @@ COMMENT ON COLUMN colab_user.login_id IS '사용자가 입력한 사용자 id입
 COMMENT ON COLUMN colab_user.nickname IS '별명입니다.';
 COMMENT ON COLUMN colab_user."password" IS '현재는 사용자가 입력한 비밀번호입니다. ( 추후 암호화된 값이 들어갑니다.)';
 
+--
+--
+-- change colum name from user_id to login_id
+ALTER TABLE colab_article RENAME COLUMN user_id TO login_id;
+COMMENT ON COLUMN colab_article.login_id IS '작성자의 user_id 입니다. (colab_user.login_id)';
+COMMENT ON COLUMN colab_file.loc IS '파일이 서버에 저장되는 주소입니다. (ex 2024/05/04/loginId)';
 

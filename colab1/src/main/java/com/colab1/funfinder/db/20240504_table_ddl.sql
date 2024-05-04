@@ -72,3 +72,15 @@ COMMENT ON COLUMN colab_file."name" IS '파일이 원본명입니다.';
 COMMENT ON COLUMN colab_file.loc IS '파일이 서버에 저장되는 주소입니다. (ex 2024/05/04/userid)';
 COMMENT ON COLUMN colab_file.ext IS '파일의 확장자입니다.';
 COMMENT ON COLUMN colab_file."size" IS '파일의 사이즈입니다. 단위는 byte';
+
+--
+--
+-- user table add comments
+ALTER TABLE colab_user ALTER COLUMN "role" DROP DEFAULT;
+COMMENT ON COLUMN colab_user."role" IS '사용자 구분값 입니다. (1:일반사용자, 2:관리자)';
+COMMENT ON COLUMN colab_user.id IS 'serail and pk';
+COMMENT ON COLUMN colab_user.login_id IS '사용자가 입력한 사용자 id입니다.';
+COMMENT ON COLUMN colab_user.nickname IS '별명입니다.';
+COMMENT ON COLUMN colab_user."password" IS '현재는 사용자가 입력한 비밀번호입니다. ( 추후 암호화된 값이 들어갑니다.)';
+
+

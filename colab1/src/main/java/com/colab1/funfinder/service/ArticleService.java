@@ -1,6 +1,8 @@
 package com.colab1.funfinder.service;
 
+
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
+
 	private final ArticleRepository articleRepo;
 	private final UserRepository userRepo;
 
@@ -52,5 +55,20 @@ public class ArticleService {
 		return article.get();
 	}
 
+
+
+	private final ArticleRepository articleRepository;
+	
+	/**
+	 * loginId로 articleList 가져오기
+	 * @param user
+	 * @return
+	 */
+	public List<Article> getArticleList(User user) {
+		String userId = user.getLoginId();
+		List<Article> articleList = articleRepository.findByUserId(userId);
+		return articleList;
+	}
+	
 
 }

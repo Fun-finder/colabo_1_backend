@@ -10,4 +10,5 @@ public interface ArticleRepository extends JpaRepository<Article, Long>{
 	
 	boolean existsByArticleId(int articleId);
 	Optional<Article> findByArticleId(int articleId);
+	Optional<Article> findByLoginId(String userId);
 }

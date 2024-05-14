@@ -3,7 +3,7 @@ package com.colab1.funfinder.dto;
 import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.entity.UserRole;
 
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,6 +22,14 @@ public class JoinRequest {
 	@NotBlank(message="닉네임이 비어있습니다.")
 	private String nickname;
 	
+	public String getLoginId() {
+        return this.loginId;
+    }
+
+	public String getPassword() {
+        return this.password;
+    }
+
 	//비밀번호 암호화 없이
 	public User toEntity() {
 		return User.builder()

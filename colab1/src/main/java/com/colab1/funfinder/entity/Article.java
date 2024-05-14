@@ -1,32 +1,32 @@
 package com.colab1.funfinder.entity;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Column;
 import java.util.Date;
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 @Entity
-@Table(name="colab_article")
 public class Article {
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="article_id" , nullable= false)
-	private int article_id;
-	private String title;
-	private String user_id;
-	@Enumerated(EnumType.STRING)
-	private Emotion emotion_cd;
-	private String reason;
-	private List<Picture> pictures;
-	private String content;
-	private Date reg_dt;
-	private Date upd_dt;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int articleId;
+
+    @Column
+    private String title;
+
+    @Column
+    private String userId; 
+
+    // 필요에 따라 다른 필드들에도 @Column 어노테이션을 추가
+
+    @Column
+    private Date regDt; // 필드명 camelCase로 변경
+
+    @Column
+    private Date updDt; // 필드명 camelCase로 변경
+
+    // getter와 setter 등 생략
 }

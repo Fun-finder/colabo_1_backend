@@ -8,59 +8,26 @@ import org.springframework.stereotype.Service;
 
 import com.colab1.funfinder.entity.Article;
 import com.colab1.funfinder.entity.User;
-import com.colab1.funfinder.repository.ArticleRepository;
-import com.colab1.funfinder.repository.UserRepository;
-
-import lombok.RequiredArgsConstructor;
+import com.colab1.funfinder.service.ArticleRepository;
+import lombok.RequiredArgsConstructor; // 롬복의 RequiredArgsConstructor 추가
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor // 롬복의 RequiredArgsConstructor 사용
 public class ArticleService {
-
-	private final ArticleRepository articleRepo;
-	private final UserRepository userRepo;
-
-	/**
-	 * User 객체를 인자로 받을 경우
-	 * @param User
-	 * @return Article
-	 */
-	public Article getArticle(User user) {
-		String userId = user.getLoginId();
-		Optional<Article> article = articleRepo.findByLoginId(userId);
-		
-		if(article.isEmpty()) return null;
-		return article.get();
-	}
-	/**
-	 * User 객체를 인자로 받을 경우
-	 * @param User
-	 * @return Article
-	 */
-	public Article getArticle(String userId) {
-		Optional<Article> article = articleRepo.findByLoginId(userId);
-		
-		if(article.isEmpty()) return null;
-		return article.get();
-	}
-	
-	/**
-	 * article_id를 인자로 받을 경우
-	 * @param User
-	 * @return Article
-	 */
-	public Article getArticle(int articleId) {
-		Optional<Article> article = articleRepo.findByArticleId(articleId);
-		if(article.isEmpty()) return null;
-		return article.get();
-	}
-
-
-
 	private final ArticleRepository articleRepository;
 	
+    /**
+     * userId로 article 가져오기
+     * @param userId
+     * @return
+     */
+	public Article getArticle(String userId) {
+		List<Article> articleList = articleRepository.findByUserId(userId);
+		return articleList.isEmpty() ? null : articleList.get(0);
+	}
+
 	/**
-	 * loginId로 articleList 가져오기
+	 * userId로 articleList 가져오기
 	 * @param user
 	 * @return
 	 */

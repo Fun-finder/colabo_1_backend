@@ -1,10 +1,10 @@
 package com.colab1.funfinder.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,5 +24,12 @@ public class User {
 	private String password;
 	private String nickname;
 	private UserRole role;
-	
+
+	public void setLoginId(String loginId) {
+        this.loginId = loginId;
+    }
+	public void setPassword(String password) {
+        this.password = password;
+    }
+
 }

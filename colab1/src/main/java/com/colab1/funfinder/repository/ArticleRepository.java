@@ -1,4 +1,4 @@
-package com.colab1.funfinder.service;
+package com.colab1.funfinder.repository;
 
 import java.util.List;
 

@@ -1,14 +1,14 @@
 package com.colab1.funfinder.service;
 
 
-import java.util.Optional;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.colab1.funfinder.entity.Article;
 import com.colab1.funfinder.entity.User;
-import com.colab1.funfinder.service.ArticleRepository;
+import com.colab1.funfinder.repository.ArticleRepository;
+
 import lombok.RequiredArgsConstructor; // 롬복의 RequiredArgsConstructor 추가
 
 @Service

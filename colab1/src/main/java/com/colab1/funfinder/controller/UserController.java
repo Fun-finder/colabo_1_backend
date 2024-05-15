@@ -1,24 +1,19 @@
+package com.colab1.funfinder.controller;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.colab1.funfinder.dto.JoinRequest;
 import com.colab1.funfinder.dto.LoginRequest;
 import com.colab1.funfinder.dto.LoginResponse;
 import com.colab1.funfinder.service.UserService;
-
-import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 @RequestMapping("/api/v1/user")
 public class UserController {

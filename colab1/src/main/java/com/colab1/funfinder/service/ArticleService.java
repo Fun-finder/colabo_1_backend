@@ -22,7 +22,7 @@ public class ArticleService {
      * @return
      */
 	public Article getArticle(String userId) {
-		List<Article> articleList = articleRepository.findByUserId(userId);
+		List<Article> articleList = articleRepository.findByLoginId(userId);
 		return articleList.isEmpty() ? null : articleList.get(0);
 	}
 
@@ -33,7 +33,7 @@ public class ArticleService {
 	 */
 	public List<Article> getArticleList(User user) {
 		String userId = user.getLoginId();
-		List<Article> articleList = articleRepository.findByUserId(userId);
+		List<Article> articleList = articleRepository.findByLoginId(userId);
 		return articleList;
 	}
 	

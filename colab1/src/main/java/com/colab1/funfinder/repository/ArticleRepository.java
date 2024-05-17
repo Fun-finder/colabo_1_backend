@@ -15,5 +15,5 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
      * @param userId 사용자 ID
      * @return 해당 사용자의 Article 목록
      */
-    List<Article> findByUserId(String userId);
+    List<Article> findByLoginId(String loginId);
 }

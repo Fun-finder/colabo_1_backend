@@ -1,16 +1,17 @@
 package com.colab1.funfinder.service;
 
+import java.util.List;
 import java.util.Optional;
+
+import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
 import com.colab1.funfinder.dto.JoinRequest;
-import com.colab1.funfinder.dto.LoginRequest;
 // import com.colab1.funfinder.dto.LoginResponse;
 import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.repository.UserRepository;
 
-import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,7 +28,7 @@ public class UserService {
             User user = optionalUser.get();
             if (user.getPassword().equals(password)) {
                 // 인증에 성공하면 토큰을 생성하여 반환합니다.
-                String token = generateToken(); // 토큰 생성 로직은 여기에 구현하세요.
+                String token = generateToken(user); // 토큰 생성 로직은 여기에 구현하세요.
                 return token;
             }
         }
@@ -44,8 +45,9 @@ public class UserService {
     }
 
     // 토큰 생성 로직을 여기에 구현합니다.
-    private String generateToken() {
+    private String generateToken(User user) {
+    	
         // 실제 토큰 생성 로직을 구현해야 합니다.
-        return "generated_token";
+    	return user.getLoginId();
     }
 }

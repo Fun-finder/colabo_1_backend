@@ -1,4 +1,4 @@
-package colab1.src.main.java.com.colab1.funfinder.config;
+package com.colab1.funfinder.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

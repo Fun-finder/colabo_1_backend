@@ -1,5 +1,10 @@
 package com.colab1.funfinder.controller;
 
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -8,10 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.colab1.funfinder.entity.Article;
+import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.service.ArticleService;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession; 
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -20,15 +24,25 @@ import lombok.RequiredArgsConstructor;
 public class ArticleController {
     private final ArticleService articleSvc;
     
-	@GetMapping("/{userId}")
-	public ResponseEntity<Article> getArticle(@PathVariable("userId") String userId , HttpServletRequest req) {
+	@GetMapping("/{loginId}")
+	public ResponseEntity<?> getArticleList(@PathVariable("loginId") String loginId , HttpServletRequest req) {
 		
 		HttpSession session = req.getSession(true);
-		String sessionUserId = (String) session.getAttribute("userId");
+		User sessionUser = (User) session.getAttribute("loginUser");
+		String sessionLoginId = sessionUser.getLoginId();
 		
-		//세션에 들어있는 로그인 정보와 다를 경우
-		if(!userId.equals(sessionUserId)) return null;
+		if (!loginId.equals(sessionLoginId)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+	    }
 		
-		return new ResponseEntity<>(articleSvc.getArticle(userId), HttpStatus.OK);
+		List<Article> articleList = articleSvc.getArticleList(sessionUser);
+		
+		return ResponseEntity.status(HttpStatus.OK).body(articleList);
+	}
+	
+	@GetMapping("/test")
+	public ResponseEntity <Article> test(HttpServletRequest req){
+		System.out.println("test");
+		return new ResponseEntity<>(null, HttpStatus.OK);
 	}
 }

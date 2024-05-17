@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.colab1.funfinder.dto.JoinRequest;
 import com.colab1.funfinder.dto.LoginRequest;
 import com.colab1.funfinder.dto.LoginResponse;
+import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,11 +35,14 @@ public class UserController {
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpServletRequest) {
         try {
             System.out.println("request.getLoginId(): " + request.getLoginId() + ", request.getPassword(): " + request.getPassword());
-            String token = userService.authenticate(request.getLoginId(), request.getPassword());
-            if (token != null) {
-                httpServletRequest.getSession(true).setAttribute("token", token);
+            User loginUser = userService.authenticate(request.getLoginId(), request.getPassword());
+            
+            if (loginUser != null) {
+//                httpServletRequest.getSession(true).setAttribute("token", token);
+                httpServletRequest.getSession(true).setAttribute("loginUser", loginUser);
+//                httpServletRequest.getSession(true).setAttribute("loginId", request.getLoginId());
                 httpServletRequest.getSession().setMaxInactiveInterval(1800);
-                return ResponseEntity.ok(new LoginResponse("Login successful", token));
+                return ResponseEntity.ok(new LoginResponse("Login successful", loginUser.getLoginId()));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid loginId or password");
             }

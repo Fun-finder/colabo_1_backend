@@ -29,20 +29,34 @@ public class ArticleController {
 		
 		HttpSession session = req.getSession(true);
 		User sessionUser = (User) session.getAttribute("loginUser");
-		String sessionLoginId = sessionUser.getLoginId();
+		//로그인 안했을 경우
+		if(sessionUser == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
 		
+		String sessionLoginId = sessionUser.getLoginId();
+		//로그인 정보와 조회하려는 정보가 다를 경우
 		if (!loginId.equals(sessionLoginId)) {
-	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-	    }
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+		}
 		
 		List<Article> articleList = articleSvc.getArticleList(sessionUser);
-		
 		return ResponseEntity.status(HttpStatus.OK).body(articleList);
 	}
 	
-	@GetMapping("/test")
-	public ResponseEntity <Article> test(HttpServletRequest req){
-		System.out.println("test");
-		return new ResponseEntity<>(null, HttpStatus.OK);
+	@GetMapping("/{loginId}/{articleId}")
+	public ResponseEntity<?> getArticle(@PathVariable("loginId") String loginId , @PathVariable("articleId") int articleId, HttpServletRequest req) {
+		
+		HttpSession session = req.getSession(true);
+		User sessionUser = (User) session.getAttribute("loginUser");
+		//로그인 안했을 경우
+		if(sessionUser == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+
+		String sessionLoginId = sessionUser.getLoginId();
+		if (!loginId.equals(sessionLoginId)) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+		}
+		
+		Article article = articleSvc.getArticleByLoginIdAndArticleId(loginId, articleId);
+		return ResponseEntity.status(HttpStatus.OK).body(article);
 	}
+	
 }

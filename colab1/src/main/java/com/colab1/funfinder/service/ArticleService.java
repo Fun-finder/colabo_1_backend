@@ -17,25 +17,34 @@ public class ArticleService {
 	private final ArticleRepository articleRepository;
 	
     /**
-     * userId로 article 가져오기
+     * ArticleId로 article 가져오기
      * @param userId
      * @return
      */
-	public Article getArticle(String userId) {
-		List<Article> articleList = articleRepository.findByLoginId(userId);
-		return articleList.isEmpty() ? null : articleList.get(0);
+	public Article getArticle(int ArticleId) {
+		Article article = articleRepository.findByArticleId(ArticleId);
+		return article;
+	}
+
+	/**
+	 * ArticleId로 article 가져오기
+	 * @param userId
+	 * @return
+	 */
+	public Article getArticleByLoginIdAndArticleId(String loginId, int ArticleId) {
+		Article article = articleRepository.findByLoginIdAndArticleId(loginId, ArticleId);
+		return article;
 	}
 
 	/**
 	 * userId로 articleList 가져오기
 	 * @param user
-	 * @return
+	 * @return List<Article>
 	 */
 	public List<Article> getArticleList(User user) {
 		String userId = user.getLoginId();
 		List<Article> articleList = articleRepository.findByLoginId(userId);
 		return articleList;
 	}
-	
 
 }

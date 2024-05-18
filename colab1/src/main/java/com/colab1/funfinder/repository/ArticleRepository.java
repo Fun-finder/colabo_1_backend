@@ -16,4 +16,18 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
      * @return 해당 사용자의 Article 목록
      */
     List<Article> findByLoginId(String loginId);
+
+    /**
+     * articleId로 article 조회
+     * @param articleId
+     * @return
+     */
+	Article findByArticleId(int articleId);
+	/**
+	 * 로그인한 사용자와 article아이디로 조회
+	 * @param loginId
+	 * @param articleId
+	 * @return
+	 */
+	Article findByLoginIdAndArticleId(String loginId, int articleId);
 }

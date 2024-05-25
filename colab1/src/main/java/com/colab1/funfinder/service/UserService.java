@@ -2,35 +2,41 @@ package com.colab1.funfinder.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 
-import javax.transaction.Transactional;
-
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.colab1.funfinder.dto.JoinRequest;
-// import com.colab1.funfinder.dto.LoginResponse;
 import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.repository.UserRepository;
+import com.colab1.funfinder.config.JwtTokenProvider;
 
+import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserService {
-    private final UserRepository userRepository;
+public class UserService implements UserDetailsService {
 
-    public User authenticate(String loginId, String password) {
-    	// 사용자 인증 로직을 구현하고, 유효한 경우 토큰을 반환합니다.
-    	// 여기에서는 간단하게 loginId와 password가 일치하는 경우에만 토큰을 발급하도록 하겠습니다.
-    	Optional<User> optionalUser = userRepository.findByLoginId(loginId);
-    	if (optionalUser.isPresent()) {
-    		User user = optionalUser.get();
-    		if (user.getPassword().equals(password)) {
-    			return user;
-    		}
-    	}
-    	return null; // 인증 실패 시 null을 반환합니다.
+    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public String authenticate(String loginId, String password) {
+        Optional<User> optionalUser = userRepository.findByLoginId(loginId);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            if (user.getPassword().equals(password)) {
+                return jwtTokenProvider.createToken(loginId);
+            }
+        }
+        return null; 
     }
 
     public void registerUser(JoinRequest request) {
@@ -42,10 +48,27 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // 토큰 생성 로직을 여기에 구현합니다.
-    private String generateToken(User user) {
-    	
-        // 실제 토큰 생성 로직을 구현해야 합니다.
-    	return user.getLoginId();
+    public Map<String, Object> getProfileData(String loginId) {
+        Optional<User> userOptional = userRepository.findByLoginId(loginId);
+        User user = userOptional.orElse(null); // orElseThrow()를 사용하여 예외를 던질 수도 있습니다.
+
+        Map<String, Object> profileData = new HashMap<>();
+        if (user != null) {
+            profileData.put("loginId", user.getLoginId()); 
+            profileData.put("password", user.getPassword()); 
+            profileData.put("nickname", user.getNickname()); 
+            profileData.put("role", user.getRole()); 
+        }
+        return profileData;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with loginId: " + loginId));
+
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().toString()));
+        
+        return new org.springframework.security.core.userdetails.User(user.getLoginId(), user.getPassword(), authorities);
     }
 }

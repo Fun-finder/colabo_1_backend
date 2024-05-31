@@ -26,7 +26,8 @@ public class User {
 	private String password;
 	private String nickname;
 	private UserRole role;
-
+	private String email;
+	
 	public void setLoginId(String loginId) {
         this.loginId = loginId;
     }

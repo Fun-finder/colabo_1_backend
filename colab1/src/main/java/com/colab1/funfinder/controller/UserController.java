@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 
 import com.colab1.funfinder.dto.LoginRequest;
+import com.colab1.funfinder.dto.JoinRequest;
 import com.colab1.funfinder.service.UserService;
 import com.colab1.funfinder.config.JwtTokenProvider;
 
@@ -73,6 +75,23 @@ public class UserController {
         }
     }
 
+    @PostMapping("/join")
+    public ResponseEntity<?> join(@Valid @RequestBody JoinRequest request) {
+        try {
+            userService.registerUser(request);
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("Message", "Registration successful");
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("Error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+        } catch (Exception e) {
+            logger.error("Registration failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
+    }
+
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
         try {
@@ -80,7 +99,7 @@ public class UserController {
             if (token == null || !jwtTokenProvider.validateToken(token)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
-            String loginId = jwtTokenProvider.getLoginIdFromToken(token); // JwtTokenProvider에서 getUsername 메서드를 사용
+            String loginId = jwtTokenProvider.getLoginIdFromToken(token);
             Map<String, Object> profileData = userService.getProfileData(loginId);
             logger.info("LoginId: {}", loginId);
             return ResponseEntity.ok(profileData);

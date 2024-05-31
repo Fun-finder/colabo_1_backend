@@ -10,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.colab1.funfinder.dto.JoinRequest;
@@ -27,12 +28,13 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;  // PasswordEncoder 추가
 
     public String authenticate(String loginId, String password) {
         Optional<User> optionalUser = userRepository.findByLoginId(loginId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if (user.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, user.getPassword())) { // 암호화된 비밀번호 비교
                 return jwtTokenProvider.createToken(loginId);
             }
         }
@@ -40,25 +42,34 @@ public class UserService implements UserDetailsService {
     }
 
     public void registerUser(JoinRequest request) {
-        User user = new User();
-        user.setLoginId(request.getLoginId());
-        user.setPassword(request.getPassword());
-        // 나머지 필드 설정...
+        if (userRepository.existsByLoginId(request.getLoginId())) {
+            throw new IllegalArgumentException("User with loginId already exists");
+        }
 
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new IllegalArgumentException("User with nickname already exists");
+        }
+        
+        // 비밀번호와 비밀번호 확인 일치 여부 확인
+        if (!request.getPassword().equals(request.getPasswordChk())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        User user = request.toEntity(encodedPassword);
+        
         userRepository.save(user);
     }
 
     public Map<String, Object> getProfileData(String loginId) {
         Optional<User> userOptional = userRepository.findByLoginId(loginId);
-        User user = userOptional.orElse(null); // orElseThrow()를 사용하여 예외를 던질 수도 있습니다.
+        User user = userOptional.orElseThrow(() -> new UsernameNotFoundException("User not found with loginId: " + loginId));
 
         Map<String, Object> profileData = new HashMap<>();
-        if (user != null) {
-            profileData.put("loginId", user.getLoginId()); 
-            profileData.put("password", user.getPassword()); 
-            profileData.put("nickname", user.getNickname()); 
-            profileData.put("role", user.getRole()); 
-        }
+        profileData.put("loginId", user.getLoginId()); 
+        profileData.put("email", user.getEmail()); 
+        profileData.put("nickname", user.getNickname()); 
+        profileData.put("role", user.getRole()); 
         return profileData;
     }
 

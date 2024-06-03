@@ -27,18 +27,21 @@ import lombok.RequiredArgsConstructor;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;  // PasswordEncoder 추가
 
-    public String authenticate(String loginId, String password) {
+    public Boolean authenticate(String loginId, String password) {
         Optional<User> optionalUser = userRepository.findByLoginId(loginId);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            if (passwordEncoder.matches(password, user.getPassword())) { // 암호화된 비밀번호 비교
-                return jwtTokenProvider.createToken(loginId);
-            }
+        //db 존재 여부 체크
+        if (!optionalUser.isPresent()) {
+        	return false;
         }
-        return null; 
+
+        //password 체크
+        if (!passwordEncoder.matches(password, optionalUser.get().getPassword())) { // 암호화된 비밀번호 비교
+            return false;
+        }
+
+        return true;
     }
 
     public void registerUser(JoinRequest request) {

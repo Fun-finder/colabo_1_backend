@@ -38,6 +38,7 @@ CREATE TABLE colab_pictrue (
 	article_id int4 NOT NULL,
 	CONSTRAINT colab_pictrue_pk PRIMARY KEY (pic_id)
 );
+
 COMMENT ON TABLE colab_pictrue IS '사진 파일이 저장되는 테이블입니다.';
 
 -- Column comments

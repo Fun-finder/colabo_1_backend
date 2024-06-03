@@ -16,6 +16,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final Key key;
+    private final int expirationTime = 3600000;// 1시간 유효기간
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -27,7 +28,7 @@ public class JwtTokenProvider {
 
     public String createToken(String loginId) {
         Date now = new Date();
-        Date validity = new Date(now.getTime() + 3600000); // 1시간 유효기간
+        Date validity = new Date(now.getTime() + expirationTime); 
 
         return Jwts.builder()
                 .setSubject(loginId)

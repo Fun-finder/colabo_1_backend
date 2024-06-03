@@ -52,23 +52,27 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletResponse httpServletResponse) {
+    	
         try {
             String loginId = request.getLoginId();
             String password = request.getPassword();
-            String check = userService.authenticate(loginId, password);
+            Boolean check = userService.authenticate(loginId, password);
             Map<String, Object> responseBody = new HashMap<>();
-           
-            if (check != null) {
-                String jwtToken = jwtTokenProvider.createToken(loginId);
-                httpServletResponse.setHeader("Authorization", "Bearer " + jwtToken);
-                responseBody.put("Message", "Login successful");
-                responseBody.put("Token", jwtToken);
-                return ResponseEntity.ok(responseBody);
-            } else { 
-                responseBody.put("Error", "Invalid loginId or password");
-                responseBody.put("Status", HttpStatus.UNAUTHORIZED.value());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+            
+            //로그인 정보가 틀렸을 때
+            if (!check) {
+            	responseBody.put("Error", "Invalid loginId or password");
+            	responseBody.put("Status", HttpStatus.UNAUTHORIZED.value());
+            	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
             }
+            //정보가 올바르면 토큰 생성
+        	String jwtToken = jwtTokenProvider.createToken(loginId);
+        	httpServletResponse.setHeader("Authorization", "Bearer " + jwtToken);
+        	responseBody.put("Message", "Login successful");
+        	responseBody.put("Token", jwtToken);
+        	
+        	return ResponseEntity.ok(responseBody);
+        
         } catch (Exception e) {
             logger.error("Login failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");

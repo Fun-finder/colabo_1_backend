@@ -1,30 +1,29 @@
 package com.colab1.funfinder.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.core.Authentication;
-
-import com.colab1.funfinder.dto.LoginRequest;
-import com.colab1.funfinder.dto.JoinRequest;
-import com.colab1.funfinder.service.UserService;
-import com.colab1.funfinder.config.JwtTokenProvider;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.colab1.funfinder.config.JwtTokenProvider;
+import com.colab1.funfinder.dto.JoinRequest;
+import com.colab1.funfinder.dto.LoginRequest;
+import com.colab1.funfinder.service.UserService;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -44,7 +43,7 @@ public class UserController {
         if (csrfToken != null) {
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("token", csrfToken.getToken());
-            return ResponseEntity.ok(responseBody);
+            return ResponseEntity.ok().body(responseBody);
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("CSRF token not found");
         }
@@ -66,16 +65,22 @@ public class UserController {
             	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
             }
             //정보가 올바르면 토큰 생성
-        	String jwtToken = jwtTokenProvider.createToken(loginId);
-        	httpServletResponse.setHeader("Authorization", "Bearer " + jwtToken);
-        	responseBody.put("Message", "Login successful");
-        	responseBody.put("Token", jwtToken);
+        	String accessToken = jwtTokenProvider.createAccessToken(loginId);
+        	String refreshToken = jwtTokenProvider.createRefreshToken();
+        	HashMap<String, String> resBody = new HashMap<String, String>();
+        	resBody.put("Message", "Login successful");
+        	resBody.put("Token", accessToken);
         	
-        	return ResponseEntity.ok(responseBody);
+        	return ResponseEntity.ok()
+        			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+        			.header("Refresh-Token", "Bearer " + refreshToken)
+        			.body(resBody);
         
         } catch (Exception e) {
             logger.error("Login failed", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+            return ResponseEntity
+            		.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            		.body("An error occurred");
         }
     }
 
@@ -100,10 +105,10 @@ public class UserController {
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
         try {
             String token = jwtTokenProvider.resolveToken(request);
-            if (token == null || !jwtTokenProvider.validateToken(token)) {
+            if (token == null || !jwtTokenProvider.validateAccessToken(token)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
-            String loginId = jwtTokenProvider.getLoginIdFromToken(token);
+            String loginId = jwtTokenProvider.getLoginIdFromAccessToken(token);
             Map<String, Object> profileData = userService.getProfileData(loginId);
             logger.info("LoginId: {}", loginId);
             return ResponseEntity.ok(profileData);

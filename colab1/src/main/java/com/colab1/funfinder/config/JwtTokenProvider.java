@@ -15,27 +15,43 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final Key key;
+    private final Key accesskey;
+    private final Key refreshKey; 
     private final int expirationTime = 3600000;// 1시간 유효기간
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(@Value("${jwt.secret.accessToken}") String secretKey, @Value("${jwt.secret.refrestoken") String refreshSecretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        byte[] refreshKeyBytes = Decoders.BASE64.decode(refreshSecretKey);
         if (keyBytes.length < 32) {
             throw new IllegalArgumentException("The secret key must be at least 256 bits (32 bytes) long");
         }
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.accesskey = Keys.hmacShaKeyFor(keyBytes);
+        this.refreshKey = Keys.hmacShaKeyFor(refreshKeyBytes);
     }
 
-    public String createToken(String loginId) {
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + expirationTime); 
-
-        return Jwts.builder()
-                .setSubject(loginId)
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+    public String createAccessToken(String loginId) {
+    	Date now = new Date();
+    	Date validity = new Date(now.getTime() + expirationTime); 
+    	
+    	return Jwts.builder()
+    			.setSubject("accessToken")
+    			.claim("loginId", loginId)
+    			.setIssuedAt(now)
+    			.setExpiration(validity)
+    			.signWith(accesskey, SignatureAlgorithm.HS256)
+    			.compact();
+    }
+    
+    public String createRefreshToken() {
+    	Date now = new Date();
+    	Date validity = new Date(now.getTime() + expirationTime); 
+    	
+    	return Jwts.builder()
+    			.setSubject("refreshToken")
+    			.setIssuedAt(now)
+    			.setExpiration(validity)
+    			.signWith(refreshKey, SignatureAlgorithm.HS256)
+    			.compact();
     }
 
     public String resolveToken(HttpServletRequest req) {
@@ -46,17 +62,25 @@ public class JwtTokenProvider {
         return null;
     }
 
-    public boolean validateToken(String token) {
+    public boolean validateAccessToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(accesskey).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
+    public boolean validateRefreshToken(String token) {
+    	try {
+    		Jwts.parserBuilder().setSigningKey(refreshKey).build().parseClaimsJws(token);
+    		return true;
+    	} catch (Exception e) {
+    		return false;
+    	}
+    }
 
-    public String getLoginIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        return claims.getSubject();
+    public String getLoginIdFromAccessToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(accesskey).build().parseClaimsJws(token).getBody();
+        return claims.get("loginId").toString();
     }
 }

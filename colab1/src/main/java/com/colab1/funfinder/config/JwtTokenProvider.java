@@ -19,7 +19,7 @@ public class JwtTokenProvider {
     private final Key refreshKey; 
     private final int expirationTime = 3600000;// 1시간 유효기간
 
-    public JwtTokenProvider(@Value("${jwt.secret.accessToken}") String secretKey, @Value("${jwt.secret.refrestoken") String refreshSecretKey) {
+    public JwtTokenProvider(@Value("${jwt.secret.accesstoken}") String secretKey, @Value("${jwt.secret.refreshtoken}") String refreshSecretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         byte[] refreshKeyBytes = Decoders.BASE64.decode(refreshSecretKey);
         if (keyBytes.length < 32) {

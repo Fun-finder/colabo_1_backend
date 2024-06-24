@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.colab1.funfinder.config.JwtTokenProvider;
 import com.colab1.funfinder.dto.JoinRequest;
 import com.colab1.funfinder.dto.LoginRequest;
+import com.colab1.funfinder.dto.RefreshTokenRequest;
 import com.colab1.funfinder.service.UserService;
 
 @RestController
@@ -51,36 +52,36 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletResponse httpServletResponse) {
-    	
         try {
             String loginId = request.getLoginId();
             String password = request.getPassword();
             Boolean check = userService.authenticate(loginId, password);
             Map<String, Object> responseBody = new HashMap<>();
             
-            //로그인 정보가 틀렸을 때
+            System.out.println("================================");
+            // 로그인 정보가 틀렸을 때
             if (!check) {
-            	responseBody.put("Error", "Invalid loginId or password");
-            	responseBody.put("Status", HttpStatus.UNAUTHORIZED.value());
-            	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+                responseBody.put("Error", "Invalid loginId or password");
+                responseBody.put("Status", HttpStatus.UNAUTHORIZED.value());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
             }
-            //정보가 올바르면 토큰 생성
-        	String accessToken = jwtTokenProvider.createAccessToken(loginId);
-        	String refreshToken = jwtTokenProvider.createRefreshToken();
-        	HashMap<String, String> resBody = new HashMap<String, String>();
-        	resBody.put("Message", "Login successful");
-        	resBody.put("Token", accessToken);
-        	
-        	return ResponseEntity.ok()
-        			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-        			.header("Refresh-Token", "Bearer " + refreshToken)
-        			.body(resBody);
-        
+            
+            // 정보가 올바르면 토큰 생성
+            String accessToken = jwtTokenProvider.createAccessToken(loginId);
+            String refreshToken = jwtTokenProvider.createRefreshToken(loginId);
+            HashMap<String, String> resBody = new HashMap<>();
+            resBody.put("Message", "Login successful");
+            resBody.put("Token", accessToken);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header("Refresh-Token", "Bearer " + refreshToken)
+                    .body(resBody);
+
         } catch (Exception e) {
             logger.error("Login failed", e);
             return ResponseEntity
-            		.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            		.body("An error occurred");
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred");
         }
     }
 
@@ -115,6 +116,22 @@ public class UserController {
         } catch (Exception e) {
             logger.error("Error in getProfile: ", e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        try {
+            Map<String, String> tokens = userService.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get("accessToken"))
+                    .header("Refresh-Token", "Bearer " + tokens.get("refreshToken"))
+                    .body(tokens);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid refresh token");
+        } catch (Exception e) {
+            logger.error("Token refresh failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
     }
 }

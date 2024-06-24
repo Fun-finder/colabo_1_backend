@@ -15,43 +15,29 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final Key accesskey;
-    private final Key refreshKey; 
-    private final int expirationTime = 3600000;// 1시간 유효기간
+    @Value("${jwt.secret.accesstoken}")
+    private String accessTokenSecret;
 
-    public JwtTokenProvider(@Value("${jwt.secret.accesstoken}") String secretKey, @Value("${jwt.secret.refreshtoken}") String refreshSecretKey) {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        byte[] refreshKeyBytes = Decoders.BASE64.decode(refreshSecretKey);
-        if (keyBytes.length < 32) {
-            throw new IllegalArgumentException("The secret key must be at least 256 bits (32 bytes) long");
-        }
-        this.accesskey = Keys.hmacShaKeyFor(keyBytes);
-        this.refreshKey = Keys.hmacShaKeyFor(refreshKeyBytes);
-    }
+    @Value("${jwt.secret.refreshtoken}")
+    private String refreshTokenSecret;
+
+    private final int accessTokenExpirationTime = 3600000; // 1 hour
+    private final int refreshTokenExpirationTime = 86400000; // 1 day
 
     public String createAccessToken(String loginId) {
-    	Date now = new Date();
-    	Date validity = new Date(now.getTime() + expirationTime); 
-    	
-    	return Jwts.builder()
-    			.setSubject("accessToken")
-    			.claim("loginId", loginId)
-    			.setIssuedAt(now)
-    			.setExpiration(validity)
-    			.signWith(accesskey, SignatureAlgorithm.HS256)
-    			.compact();
+        return Jwts.builder()
+                .setSubject(loginId)
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpirationTime))
+                .signWith(getSigningKey(accessTokenSecret), SignatureAlgorithm.HS256)
+                .compact();
     }
-    
-    public String createRefreshToken() {
-    	Date now = new Date();
-    	Date validity = new Date(now.getTime() + expirationTime); 
-    	
-    	return Jwts.builder()
-    			.setSubject("refreshToken")
-    			.setIssuedAt(now)
-    			.setExpiration(validity)
-    			.signWith(refreshKey, SignatureAlgorithm.HS256)
-    			.compact();
+
+    public String createRefreshToken(String loginId) {
+        return Jwts.builder()
+                .setSubject(loginId)
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpirationTime))
+                .signWith(getSigningKey(refreshTokenSecret), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     public String resolveToken(HttpServletRequest req) {
@@ -64,23 +50,34 @@ public class JwtTokenProvider {
 
     public boolean validateAccessToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(accesskey).build().parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(getSigningKey(accessTokenSecret)).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
+
     public boolean validateRefreshToken(String token) {
-    	try {
-    		Jwts.parserBuilder().setSigningKey(refreshKey).build().parseClaimsJws(token);
-    		return true;
-    	} catch (Exception e) {
-    		return false;
-    	}
+        try {
+            Jwts.parserBuilder().setSigningKey(getSigningKey(refreshTokenSecret)).build().parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String getLoginIdFromAccessToken(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(accesskey).build().parseClaimsJws(token).getBody();
-        return claims.get("loginId").toString();
+        Claims claims = Jwts.parserBuilder().setSigningKey(getSigningKey(accessTokenSecret)).build().parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
+
+    public String getLoginIdFromRefreshToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(getSigningKey(refreshTokenSecret)).build().parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
+
+    private Key getSigningKey(String secret) {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

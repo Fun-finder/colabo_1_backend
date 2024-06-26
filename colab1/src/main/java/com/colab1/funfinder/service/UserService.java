@@ -34,7 +34,8 @@ public class UserService implements UserDetailsService {
         if (!optionalUser.isPresent()) {
             return false;
         }
-        if (!passwordEncoder.matches(password, optionalUser.get().getPassword())) {
+//        if (!passwordEncoder.matches(password, optionalUser.get().getPassword())) {
+    	if (!optionalUser.get().getPassword().equals(password)) {
             return false;
         }
         return true;

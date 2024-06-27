@@ -2,9 +2,6 @@ package com.colab1.funfinder.controller;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,11 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.colab1.funfinder.config.JwtTokenProvider;
 import com.colab1.funfinder.dto.TokenValidation;
 import com.colab1.funfinder.entity.Article;
-import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.service.ArticleService;
 
 @Controller
@@ -32,12 +29,16 @@ public class ArticleController {
     }
     
 	@GetMapping("/{loginId}")
-	public ResponseEntity<?> getArticleList(@PathVariable("loginId") String loginId , @RequestHeader("Authorization") String accessToken) {
-		
+	public ResponseEntity<?> getArticleList(@PathVariable("loginId") String loginId ,@RequestParam(value="page", defaultValue="-1") int page , @RequestHeader("Authorization") String accessToken) {
 		TokenValidation tVal = getTokenValidation(accessToken, loginId);
 		if(!tVal.getIsValid()) return tVal.getResEntity();
-
-		List<Article> articleList = articleSvc.getArticleList(loginId);
+	
+		int pageSize = 16;
+		if(page == -1) {
+			List<Article> articleList = articleSvc.getArticleList(loginId);
+			return ResponseEntity.status(HttpStatus.OK).body(articleList);
+		}
+		List<Article> articleList = articleSvc.getArticleByPage(loginId, page, pageSize);
 		return ResponseEntity.status(HttpStatus.OK).body(articleList);
 	}
 	

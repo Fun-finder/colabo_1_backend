@@ -3,6 +3,8 @@ package com.colab1.funfinder.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.colab1.funfinder.entity.Article;
@@ -56,4 +58,8 @@ public class ArticleService {
 		return articleList;
 	}
 
+	public List<Article> getArticleByPage(String loginId, int page, int size){
+			Pageable pageable = PageRequest.of(page, size);
+			return articleRepository.findByLoginId(loginId, pageable);
+	}
 }

@@ -46,5 +46,14 @@ public class ArticleService {
 		List<Article> articleList = articleRepository.findByLoginId(userId);
 		return articleList;
 	}
+	/**
+	 * userId로 articleList 가져오기
+	 * @param user
+	 * @return List<Article>
+	 */
+	public List<Article> getArticleList(String loginId) {
+		List<Article> articleList = articleRepository.findByLoginId(loginId);
+		return articleList;
+	}
 
 }

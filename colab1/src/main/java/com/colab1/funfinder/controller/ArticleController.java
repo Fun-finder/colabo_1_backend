@@ -14,11 +14,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.colab1.funfinder.config.JwtTokenProvider;
+import com.colab1.funfinder.dto.TokenValidation;
 import com.colab1.funfinder.entity.Article;
 import com.colab1.funfinder.entity.User;
 import com.colab1.funfinder.service.ArticleService;
-
-import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/api/v1/article")
@@ -33,47 +32,52 @@ public class ArticleController {
     }
     
 	@GetMapping("/{loginId}")
-	public ResponseEntity<?> getArticleList(@PathVariable("loginId") String loginId , @RequestHeader("Authorization") String acessToken) {
+	public ResponseEntity<?> getArticleList(@PathVariable("loginId") String loginId , @RequestHeader("Authorization") String accessToken) {
 		
-		if(acessToken == null || !acessToken.startsWith("Bearer ")) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰이 없습니다.");
-		}
-		
-		acessToken = acessToken.substring(7); // Remove "Bearer " prefix
-		//여기에 refreshToken도 체크하는 로직을 넣을 생각
-        if (!jwtTokenProvider.validateAccessToken(acessToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 토큰입니다.");
-        }
-		
-        String loginIdByToken = jwtTokenProvider.getLoginIdFromAccessToken(acessToken);
-        
-		//로그인 안했을 경우
-		if(loginIdByToken == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("로그인 정보가 없는 토큰입니다.");
-		
-		//로그인 정보와 조회하려는 정보가 다를 경우
-		if (!loginId.equals(loginIdByToken)) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
-		}
-		
+		TokenValidation tVal = getTokenValidation(accessToken, loginId);
+		if(!tVal.getIsValid()) return tVal.getResEntity();
+
 		List<Article> articleList = articleSvc.getArticleList(loginId);
 		return ResponseEntity.status(HttpStatus.OK).body(articleList);
 	}
 	
 	@GetMapping("/{loginId}/{articleId}")
-	public ResponseEntity<?> getArticle(@PathVariable("loginId") String loginId , @PathVariable("articleId") int articleId, HttpServletRequest req) {
+	public ResponseEntity<?> getArticle(@PathVariable("loginId") String loginId , @PathVariable("articleId") int articleId, @RequestHeader("Authorization") String accessToken) {
 		
-		HttpSession session = req.getSession(true);
-		User sessionUser = (User) session.getAttribute("loginUser");
-		//로그인 안했을 경우
-		if(sessionUser == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-
-		String sessionLoginId = sessionUser.getLoginId();
-		if (!loginId.equals(sessionLoginId)) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-		}
+		TokenValidation tVal = getTokenValidation(accessToken, loginId);
+		if(!tVal.getIsValid()) return tVal.getResEntity();
 		
 		Article article = articleSvc.getArticleByLoginIdAndArticleId(loginId, articleId);
 		return ResponseEntity.status(HttpStatus.OK).body(article);
+	}
+	
+	
+	private TokenValidation getTokenValidation(String accessToken, String loginId) {
+		//토큰 형식인지 체크
+		if(accessToken == null || !accessToken.startsWith("Bearer ")) {
+			return new TokenValidation("토큰이 없습니다.");
+		}
+		
+		accessToken = accessToken.substring(7); // Remove "Bearer " prefix
+		//여기에 refreshToken도 체크하는 로직을 넣을 생각
+        if (!jwtTokenProvider.validateAccessToken(accessToken)) {
+        	return new TokenValidation("유효하지 않은 토큰입니다.");
+        }
+        
+        String loginIdByToken = jwtTokenProvider.getLoginIdFromAccessToken(accessToken);
+        
+		//로그인 안했을 경우
+		if(loginIdByToken == null) {
+			return new TokenValidation("로그인 정보가 없는 토큰입니다.");
+		}
+		
+		//로그인 정보와 조회하려는 정보가 다를 경우
+		if (!loginId.equals(loginIdByToken)) {
+			return new TokenValidation("권한이 없습니다.");
+		}
+        
+		//토큰이 올바르고 로그인정보가 같은 경우
+        return new TokenValidation(loginId, true);
 	}
 	
 }
